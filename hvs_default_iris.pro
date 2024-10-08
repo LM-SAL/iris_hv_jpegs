@@ -66,7 +66,7 @@ function HVS_DEFAULT_IRIS
   b.details[0].IDL_bitdepth = 8 ; REQUIRED
   b.details[0].bit_rate = [-1, -1] ; REQUIRED
   b.details[0].dataMin = 0.0
-  b.details[0].dataMax = 800.0
+  b.details[0].dataMax = 1200.0
   b.details[0].dataScalingType = 3 ; 0 - linear, 1 - sqrt, 3 - log10
 
   ; 1400A:
@@ -76,7 +76,27 @@ function HVS_DEFAULT_IRIS
   b.details[1].IDL_bitdepth = 8 ; REQUIRED
   b.details[1].bit_rate = [-1, -1] ; REQUIRED
   b.details[1].dataMin = 0.0
-  b.details[1].dataMax = 1900.0
+  b.details[1].dataMax = 1600.0
+  b.details[1].dataScalingType = 3 ; 0 - linear, 1 - sqrt, 3 - log10
+
+  ; 2796
+  b.details[1].measurement = '2796' ; REQUIRED
+  b.details[1].n_levels = 0 ; REQUIRED
+  b.details[1].n_layers = 224 ; REQUIRED
+  b.details[1].IDL_bitdepth = 8 ; REQUIRED
+  b.details[1].bit_rate = [-1, -1] ; REQUIRED
+  b.details[1].dataMin = 0.0
+  b.details[1].dataMax = 1600.0
+  b.details[1].dataScalingType = 3 ; 0 - linear, 1 - sqrt, 3 - log10
+  
+  ; 2832
+  b.details[1].measurement = '2832' ; REQUIRED
+  b.details[1].n_levels = 0 ; REQUIRED
+  b.details[1].n_layers = 224 ; REQUIRED
+  b.details[1].IDL_bitdepth = 8 ; REQUIRED
+  b.details[1].bit_rate = [-1, -1] ; REQUIRED
+  b.details[1].dataMin = 0.0
+  b.details[1].dataMax = 1600.0
   b.details[1].dataScalingType = 3 ; 0 - linear, 1 - sqrt, 3 - log10
 
   ; Verify:
