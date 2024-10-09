@@ -37,6 +37,8 @@ pro hv_iris_fits2jp2k, iris_file, $
   for i = 0, nt - 1 do begin
     img = reform(data[*, *, i])
     hd = header[i]
+    rot_angle = acos(hd.PC1_1)
+    img = rotate(img, rot_angle)
     ; Construct an HVS
     tobs = HV_PARSE_CCSDS(hd.date_obs)
     ; Crop image to remove the parts of the CCD with no data
@@ -65,12 +67,11 @@ pro hv_iris_fits2jp2k, iris_file, $
     endelse
     ; Extra HV metadata
     measurement = trim(hd.twave1)
-    rot_angle = acos(hd.PC1_1)
-    hd = add_tag(hd, info.observatory, 'hv_observatory')
+        hd = add_tag(hd, info.observatory, 'hv_observatory')
     hd = add_tag(hd, info.instrument, 'hv_instrument')
     hd = add_tag(hd, info.detector, 'hv_detector')
     hd = add_tag(hd, measurement, 'hv_measurement')
-    hd = add_tag(hd, rot_angle, 'hv_rotation')
+    hd = add_tag(hd, 0, 'hv_rotation')
     hd = add_tag(hd, progname, 'hv_source_program')
 
     ; Create the hvs structure
@@ -162,6 +163,11 @@ pro hv_iris_fits2jp2k, iris_file, $
         if tagnames[j].endsWith('3') then continue
         if tagnames[j].endsWith('3_1') then continue
         if tagnames[j].endsWith('3_2') then continue
+        ; These are not needed for the final JPEG
+        if tagnames[j].endsWith('IX') then continue
+        if tagnames[j].endsWith('SAT_ROT') then continue
+        if tagnames[j].endsWith('XCEN') then continue
+        if tagnames[j].endsWith('YCEN') then continue
         ; Account for crop by updating each of the following keywords
         ; The infomation is from the aux so that should be correct
         if tagnames[j] eq 'NAXIS1' then begin
@@ -177,16 +183,28 @@ pro hv_iris_fits2jp2k, iris_file, $
            value = new_y * hd.cdelt2
         endif
         if tagnames[j] eq 'CRVAL1' then begin
-          value = header[i].xcen - (header[i].crpix1 - header[i].SLTPX1IX) * header[i].CDELT1
+          value = hd.crval1 - (hd.crpix1 - hd.SLTPX1IX) * hd.CDELT1
         endif
         if tagnames[j] eq 'CRVAL2' then begin
-          value = header[i].ycen - (header[i].crpix2 - header[i].SLTPX2IX) * header[i].CDELT2
+          value = hd.crval2 - (hd.crpix2 - hd.SLTPX2IX) * hd.CDELT2
         endif
         if tagnames[j] eq 'CRPIX1' then begin
           value = round(new_x / 2) + 1
         endif
         if tagnames[j] eq 'CRPIX2' then begin
           value = round(new_y / 2) + 1
+        endif
+        if tagnames[j] eq 'PC1_1' then begin
+          value = 1
+        endif
+        if tagnames[j] eq 'PC1_2' then begin
+          value = 0
+        endif
+        if tagnames[j] eq 'PC2_1' then begin
+          value = 0
+        endif
+        if tagnames[j] eq 'PC2_2' then begin
+          value = 1
         endif
         value = HV_XML_COMPLIANCE(strtrim(string(value), 2))
         xh += '<' + tagnames[j] + '>' + value + '</' + tagnames[j] + '>' + lf

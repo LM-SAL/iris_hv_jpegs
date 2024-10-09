@@ -4,7 +4,7 @@ set_logenv, 'HV_JP2GEN', '/home/nabil/Git/iris_hv_jpegs/jp2gen_beta'
 ssw_path, get_logenv('HV_JP2GEN'), /prepend
 
 files_iris = file_search(['/home/nabil/DATA/IRIS/**/*SJI*.fits'])
-;files_iris = files_iris[0]
+files_iris = files_iris[-4:-1]
 
 for i = 0, n_elements(files_iris) - 1 do begin
   print, "working on", files_iris[i]
