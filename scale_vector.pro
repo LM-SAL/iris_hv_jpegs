@@ -146,18 +146,18 @@ function Scale_Vector, vector, minRange, maxRange, $
   if size(FPUFIX(vector), /tname) eq 'DOUBLE' and n_elements(double) eq 0 then double = 1
 
   ; Make sure we are working with at least floating point numbers.
-  if keyword_set(double) then minRange = double[minRange] else minRange = float(minRange)
-  if keyword_set(double) then maxRange = double[maxRange] else maxRange = float(maxRange)
+  if keyword_set(double) then minRange = double(minRange) else minRange = float(minRange)
+  if keyword_set(double) then maxRange = double(maxRange) else maxRange = float(maxRange)
 
   ; Make sure we have a valid range.
   if maxRange eq minRange then message, 'Range max and min are coincidental'
 
   ; Check keyword parameters.
   if keyword_set(double) then begin
-    if n_elements(vectorMin) eq 0 then vectorMin = double[min(FPUFIX(vector), nan = 1)] $
-    else vectorMin = double[vectorMin]
-    if n_elements(vectorMax) eq 0 then vectorMax = double[max(FPUFIX(vector), nan = 1)] $
-    else vectorMax = double[vectorMax]
+    if n_elements(vectorMin) eq 0 then vectorMin = double(min(FPUFIX(vector), nan = 1)) $
+    else vectorMin = double(vectorMin)
+    if n_elements(vectorMax) eq 0 then vectorMax = double(max(FPUFIX(vector), nan = 1)) $
+    else vectorMax = double(vectorMax)
   endif else begin
     if n_elements(vectorMin) eq 0 then vectorMin = float(min(FPUFIX(vector), nan = 1)) $
     else vectorMin = float(vectorMin)
