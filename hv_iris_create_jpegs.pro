@@ -1,14 +1,15 @@
 pro hv_iris_fits2jp2k, iris_file, $
   ; IRIS details file
-  details_file = details_file, $ 
-  do_cruiser=do_cruiser, $ 
+  details_file = details_file, $
+  do_cruiser = do_cruiser, $
   ; Output directories for generated jpeg2000 images:
   dir_obs_wave_out_iris = dir_obs_wave_out_iris, $
   dir_obs_out_cruiser = dir_obs_out_cruiser, $
-  log_latest_file_time=log_latest_file_time, $
+  log_latest_file_time = log_latest_file_time, $
   dir_logs = dir_logs
   compile_opt idl2
-
+  ; start time
+  t0 = systime(1)
   ; Code to create JPEG2000 versions of IRIS images
   progname = 'hv_iris_fits2jp2k'
   ; Line feed character
@@ -31,13 +32,13 @@ pro hv_iris_fits2jp2k, iris_file, $
   ; Loop through given file generating canonical helioviewer header and
   ; writing out the jpeg2000 file for each step
   med = median(data)
-  std = STDDEV(data)
+  std = stddev(data)
   vmin = max([0, med - 1.5 * std])
   vmax = min([max(data), med + 1.5 * std])
   for i = 0, nt - 1 do begin
     img = reform(data[*, *, i])
     hd = header[i]
-    rot_angle = acos(hd.PC1_1)
+    rot_angle = acos(hd.pc1_1)
     img = rotate(img, rot_angle)
     ; Construct an HVS
     tobs = HV_PARSE_CCSDS(hd.date_obs)
@@ -49,7 +50,7 @@ pro hv_iris_fits2jp2k, iris_file, $
     S = size(img, /dimensions)
     new_x = S[0]
     new_y = S[1]
-    this_wave = where(wave_arr eq trim(hd.twave1), this_wave_count)
+    this_wave = where(wave_arr eq TRIM(hd.twave1))
     ; Exposure normalization
     img = img / (1.0 * hd.exptime)
     ; Fix scaling
@@ -57,23 +58,28 @@ pro hv_iris_fits2jp2k, iris_file, $
     if max(img) - min(img) le 200 then begin
       img[where(img le 0)] = mean(img[where(img ge 0)])
       med = median(img)
-      std = STDDEV(img)
+      std = stddev(img)
       vmin = max([0, med - 3 * std])
       vmax = min([max(img), med + 3 * std])
-      img = ASinhScl(img, beta = 1, min=vmin, max=vmax)
-    ; Everything else like flares or HDR images work ok in this context.
+      img = ASinhScl(img, beta = 1, min = vmin, max = vmax)
+      ; Everything else like flares or HDR images work ok in this context.
     endif else begin
-      img = ASinhScl(img, beta = 3, min=vmin, max=vmax)
+      img = ASinhScl(img, beta = 3, min = vmin, max = vmax)
     endelse
     ; Extra HV metadata
-    measurement = trim(hd.twave1)
-        hd = add_tag(hd, info.observatory, 'hv_observatory')
+    measurement = TRIM(hd.twave1)
+    hd = add_tag(hd, info.observatory, 'hv_observatory')
     hd = add_tag(hd, info.instrument, 'hv_instrument')
     hd = add_tag(hd, info.detector, 'hv_detector')
     hd = add_tag(hd, measurement, 'hv_measurement')
     hd = add_tag(hd, 0, 'hv_rotation')
     hd = add_tag(hd, progname, 'hv_source_program')
-
+    ; wcs = fitshead2wcs(header)
+    ; center = wcs_get_pixel(wcs, [0,0])
+    ; header.crpix1 = center[0]
+    ; header.crpix2 = center[1]
+    ; header.crval1 = 0
+    ; header.crval2 = 0
     ; Create the hvs structure
     hvsi = {dir: '', $
       fitsname: iris_file, $
@@ -87,17 +93,14 @@ pro hv_iris_fits2jp2k, iris_file, $
       milli: tobs.milli, $
       measurement: measurement, $
       details: info}
-
     ; Make the storage directory
-    ; Want to store each obs under YY/MM/DD/
-    loc = dir_obs_wave_out_iris + "/" + string(tobs.yy) + "/" + string(tobs.mm) + "/" + string(tobs.dd) + "/"
+    storage.jp2_location = dir_obs_wave_out_iris
+    loc = storage.jp2_location + (HV_DIRECTORY_CONVENTION(hvsi.yy, hvsi.mm, hvsi.dd, hvsi.measurement))[3]
     if ~file_exist(loc) then mk_dir, loc
-
     ; Create jpeg2000 file name according to convention
     date = hvsi.yy + '_' + hvsi.mm + '_' + hvsi.dd
     time = hvsi.hh + '_' + hvsi.mmm + '_' + hvsi.ss + '_' + hvsi.milli
     jp2_filename = 'IRIS_SJI' + '_' + measurement + '_' + date + '_' + time + '.jp2'
-
     ; Who created this file and where
     hv_comment = 'JP2 file created locally at ' + wby.local.institute + $
       ' using ' + progname + $
@@ -105,13 +108,11 @@ pro hv_iris_fits2jp2k, iris_file, $
       'Contact ' + wby.local.contact + $
       ' for more details/questions/comments' + $
       ' regarding this JP2 file.' + lf
-
     ; Which setup file was used
     hv_comment = hv_comment + $
       'HVS (Helioviewer setup) file used to create this JP2 file: ' + $
       info.hvs_details_filename + $
       ' (version ' + info.hvs_details_filename_version + ').' + lf
-
     ; Source code attribution
     hv_comment = $
       HV_XML_COMPLIANCE(hv_comment + $
@@ -124,15 +125,10 @@ pro hv_iris_fits2jp2k, iris_file, $
         'if you suspect an error in the source code.' + lf + $
         'Full source code for the entire Helioviewer Project' + $
         'can be found at ' + g.source.all_code + '.')
-
     if tag_exist(hd, 'hv_comment') then begin
       hv_comment = HV_XML_COMPLIANCE(hd.hv_comment) + lf + hv_comment
     endif
-
-    ; ********************************
     ; Create full JPEG2000 XML header
-    ; ********************************
-
     ; FITS header into string in XML format:
     xh = ''
     ntags = n_tags(hd)
@@ -147,10 +143,8 @@ pro hv_iris_fits2jp2k, iris_file, $
     indf2 = where(tagnames eq 'DATE_D$OBS', ni2)
     if ni2 eq 1 then tagnames[indf2] = 'DATE-OBS'
     xh = '<?xml version="1.0" encoding = "UTF-8"?>' + lf
-
     ; Enclose all the FITS keywords in their own container
     xh += '<meta>' + lf
-
     ; FITS keywords
     xh += '<fits>' + lf
     for j = 0, ntags - 1 do begin
@@ -177,16 +171,16 @@ pro hv_iris_fits2jp2k, iris_file, $
           value = new_y
         endif
         if tagnames[j] eq 'FOVX' then begin
-           value = new_x * hd.cdelt1
+          value = new_x * hd.cdelt1
         endif
         if tagnames[j] eq 'FOVY' then begin
-           value = new_y * hd.cdelt2
+          value = new_y * hd.cdelt2
         endif
         if tagnames[j] eq 'CRVAL1' then begin
-          value = hd.crval1 - (hd.crpix1 - hd.SLTPX1IX) * hd.CDELT1
+          value = hd.crval1 - (hd.crpix1 - hd.sltpx1Ix) * hd.cdelt1
         endif
         if tagnames[j] eq 'CRVAL2' then begin
-          value = hd.crval2 - (hd.crpix2 - hd.SLTPX2IX) * hd.CDELT2
+          value = hd.crval2 - (hd.crpix2 - hd.sltpx2Ix) * hd.cdelt2
         endif
         if tagnames[j] eq 'CRPIX1' then begin
           value = round(new_x / 2) + 1
@@ -210,7 +204,6 @@ pro hv_iris_fits2jp2k, iris_file, $
         xh += '<' + tagnames[j] + '>' + value + '</' + tagnames[j] + '>' + lf
       endif
     endfor
-
     ; FITS history
     xh += '<history>' + lf
     j = jhist
@@ -221,7 +214,6 @@ pro hv_iris_fits2jp2k, iris_file, $
       k = k + 1
     endwhile
     xh += '</history>' + lf
-
     ; FITS Comments
     xh += '<comment>' + lf
     j = jcomm
@@ -232,50 +224,38 @@ pro hv_iris_fits2jp2k, iris_file, $
       k = k + 1
     endwhile
     xh += '</comment>' + lf
-
     ; Close the FITS information
     xh += '</fits>' + lf
-
     ; Explicitly encode the allowed Helioviewer JP2 tags
     xh += '<helioviewer>' + lf
-
     ; Original rotation state
     xh += '<HV_ROTATION>' + $
       HV_XML_COMPLIANCE(strtrim(string(hd.hv_rotation), 2)) + $
       '</HV_ROTATION>' + lf
-
     ; JP2GEN version
     xh += '<HV_JP2GEN_VERSION>' + $
       HV_XML_COMPLIANCE(TRIM(g.source.jp2Gen_version)) + $
       '</HV_JP2GEN_VERSION>' + lf
-
     ; JP2GEN branch revision
     xh += '<HV_JP2GEN_BRANCH_REVISION>' + $
       HV_XML_COMPLIANCE(TRIM(g.source.jp2Gen_branch_revision)) + $
       '</HV_JP2GEN_BRANCH_REVISION>' + lf
-
     ; HVS setup file
     xh += '<HV_HVS_DETAILS_FILENAME>' + $
       HV_XML_COMPLIANCE(TRIM(info.hvs_details_filename)) + $
       '</HV_HVS_DETAILS_FILENAME>' + lf
-
     ; HVS setup file version
     xh += '<HV_HVS_DETAILS_FILENAME_VERSION>' + $
       HV_XML_COMPLIANCE(TRIM(info.hvs_details_filename_version)) + $
       '</HV_HVS_DETAILS_FILENAME_VERSION>' + lf
-
     ; JP2 comments
     xh += '<HV_COMMENT>' + hv_comment + '</HV_COMMENT>' + lf
-
     ; Explicit support from the Helioviewer Project
     xh += '<HV_SUPPORTED>TRUE</HV_SUPPORTED>' + lf
-
     ; Close the Helioviewer information
     xh += '</helioviewer>' + lf
-
     ; Enclose all the XML elements in their own container
     xh += '</meta>' + lf
-
     ; Write this JP2 file:
     oJP2 = obj_new('IDLffJPEG2000', concat_dir(loc, jp2_filename), /write, $
       bit_rate = info.details[this_wave].bit_rate, $
@@ -286,14 +266,11 @@ pro hv_iris_fits2jp2k, iris_file, $
       reversible = 1)
     oJP2.setData, img
     obj_destroy, oJP2
-
-    ; ==============================================================================
-    ; Optionally also write this JPEG2000 file to a corresponding cruiser directory:
-    ; ==============================================================================
+    ; Optionally also write this JPEG2000 file to a corresponding cruiser directory
     if keyword_set(do_cruiser) then begin
       ; Create cruiser obs directory if it does not already exist:
       ; Want to store each obs under YY/MM/DD/
-      loc_crusier = dir_obs_out_cruiser + "/" + string(tobs.yy) + "/" + string(tobs.mm) + "/" + string(tobs.dd) + "/"
+      loc_crusier = dir_obs_out_cruiser + '/' + string(tobs.yy) + '/' + string(tobs.mm) + '/' + string(tobs.dd) + '/'
       if ~file_exist(dir_obs_out_cruiser) then mk_dir, loc_crusier
 
       oJP2 = obj_new('IDLffJPEG2000', /write, $
@@ -308,7 +285,6 @@ pro hv_iris_fits2jp2k, iris_file, $
       obj_destroy, oJP2
     endif ; End of optional file write to cruiser dir
   endfor
-
   ; Update the 'last file written' log:
   if keyword_set(log_latest_file_time) then begin
     t_create_ut = anytim(ut_time(!stime), /ccsds)
@@ -316,14 +292,18 @@ pro hv_iris_fits2jp2k, iris_file, $
     t_obs_ut = hd.date_obs
     t_obs_ut_sec = anytim(t_obs_ut)
     t_obs_lag_sec = t_create_ut_sec - t_obs_ut_sec
-    
-    if not keyword_set(dir_logs) then dir_logs = "~/logs"
-    if ~file_exist(dir_logs) then mk_dir, dir_logs
+    if not keyword_set(dir_logs) then begin
+      dir_logs = '~/logs'
+    endif
+    if ~file_exist(dir_logs) then begin
+      mk_dir, dir_logs
+    endif
     filnam_t_last = concat_dir(dir_logs, 'last_file_' + measurement)
     buff = t_create_ut + ' ' + strtrim(t_create_ut_sec, 2) + ' ' + t_obs_ut + ' ' + $
       strtrim(t_obs_ut_sec, 2) + ' ' + strtrim(t_obs_lag_sec, 2)
     file_append, filnam_t_last, buff, /new
   endif
-
+  ; Report the time taken for JP2 file creation and transfer
+  HV_REPORT_WRITE_TIME, progname, t0, n_elements(strarr(nt))
   RETURN
 end

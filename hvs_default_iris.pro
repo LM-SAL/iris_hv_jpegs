@@ -88,7 +88,7 @@ function HVS_DEFAULT_IRIS
   b.details[1].dataMin = 0.0
   b.details[1].dataMax = 1600.0
   b.details[1].dataScalingType = 3 ; 0 - linear, 1 - sqrt, 3 - log10
-  
+
   ; 2832
   b.details[1].measurement = '2832' ; REQUIRED
   b.details[1].n_levels = 0 ; REQUIRED

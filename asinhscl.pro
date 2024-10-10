@@ -1,4 +1,3 @@
- 
 ;+
 ; NAME:
 ;       ASINHSCL
@@ -102,133 +101,135 @@
 ;         to the "softening parameter" of Lupton et. al., following the
 ;         suggestions of Marshall Perrin. 25 April 2006. DWF.
 ;-
-;******************************************************************************************;
-;  Copyright (c) 2008, by Fanning Software Consulting, Inc.                                ;
-;  All rights reserved.                                                                    ;
-;                                                                                          ;
-;  Redistribution and use in source and binary forms, with or without                      ;
-;  modification, are permitted provided that the following conditions are met:             ;
-;                                                                                          ;
-;      * Redistributions of source code must retain the above copyright                    ;
-;        notice, this list of conditions and the following disclaimer.                     ;
-;      * Redistributions in binary form must reproduce the above copyright                 ;
-;        notice, this list of conditions and the following disclaimer in the               ;
-;        documentation and/or other materials provided with the distribution.              ;
-;      * Neither the name of Fanning Software Consulting, Inc. nor the names of its        ;
-;        contributors may be used to endorse or promote products derived from this         ;
-;        software without specific prior written permission.                               ;
-;                                                                                          ;
-;  THIS SOFTWARE IS PROVIDED BY FANNING SOFTWARE CONSULTING, INC. ''AS IS'' AND ANY        ;
-;  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES    ;
-;  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT     ;
-;  SHALL FANNING SOFTWARE CONSULTING, INC. BE LIABLE FOR ANY DIRECT, INDIRECT,             ;
-;  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED    ;
-;  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;         ;
-;  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND             ;
-;  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT              ;
-;  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS           ;
-;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                            ;
-;******************************************************************************************;
-FUNCTION ASinhScl_ASinh, x
-;
-; NAME:
-;     ASINH
-; PURPOSE:
-;     Return the inverse hyperbolic sine of the argument
-; EXPLANATION:
-;     The inverse hyperbolic sine is used for the calculation of asinh
-;     magnitudes, see Lupton et al. (1999, AJ, 118, 1406)
-;
-; CALLING SEQUENCE
-;     result = asinh( x)
-; INPUTS:
-;     X - hyperbolic sine, numeric scalar or vector or multidimensional array
-;        (not complex)
-;
-; OUTPUT:
-;     result - inverse hyperbolic sine, same number of elements as X
-;              double precision if X is double, otherwise floating pt.
-;
-; METHOD:
-;     Expression given in  Numerical Recipes, Press et al. (1992), eq. 5.6.7
-;     Note that asinh(-x) = -asinh(x) and that asinh(0) = 0. and that
-;     if y = asinh(x) then x = sinh(y).
-;
-; REVISION HISTORY:
-;     Written W. Landsman                 February, 2001
-;     Work for multi-dimensional arrays  W. Landsman    August 2002
-;     Simplify coding, and work for scalars again  W. Landsman October 2003
-;
-   On_Error, 2
+; ******************************************************************************************;
+; Copyright (c) 2008, by Fanning Software Consulting, Inc.                                ;
+; All rights reserved.                                                                    ;
+; ;
+; Redistribution and use in source and binary forms, with or without                      ;
+; modification, are permitted provided that the following conditions are met:             ;
+; ;
+; * Redistributions of source code must retain the above copyright                    ;
+; notice, this list of conditions and the following disclaimer.                     ;
+; * Redistributions in binary form must reproduce the above copyright                 ;
+; notice, this list of conditions and the following disclaimer in the               ;
+; documentation and/or other materials provided with the distribution.              ;
+; * Neither the name of Fanning Software Consulting, Inc. nor the names of its        ;
+; contributors may be used to endorse or promote products derived from this         ;
+; software without specific prior written permission.                               ;
+; ;
+; THIS SOFTWARE IS PROVIDED BY FANNING SOFTWARE CONSULTING, INC. ''AS IS'' AND ANY        ;
+; EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES    ;
+; OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT     ;
+; SHALL FANNING SOFTWARE CONSULTING, INC. BE LIABLE FOR ANY DIRECT, INDIRECT,             ;
+; INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED    ;
+; TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;         ;
+; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND             ;
+; ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT              ;
+; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS           ;
+; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                            ;
+; ******************************************************************************************;
+function ASinhScl_ASinh, x
+  compile_opt idl2
+  ;
+  ; NAME:
+  ; ASINH
+  ; PURPOSE:
+  ; Return the inverse hyperbolic sine of the argument
+  ; EXPLANATION:
+  ; The inverse hyperbolic sine is used for the calculation of asinh
+  ; magnitudes, see Lupton et al. (1999, AJ, 118, 1406)
+  ;
+  ; CALLING SEQUENCE
+  ; result = asinh( x)
+  ; INPUTS:
+  ; X - hyperbolic sine, numeric scalar or vector or multidimensional array
+  ; (not complex)
+  ;
+  ; OUTPUT:
+  ; result - inverse hyperbolic sine, same number of elements as X
+  ; double precision if X is double, otherwise floating pt.
+  ;
+  ; METHOD:
+  ; Expression given in  Numerical Recipes, Press et al. (1992), eq. 5.6.7
+  ; Note that asinh(-x) = -asinh(x) and that asinh(0) = 0. and that
+  ; if y = asinh(x) then x = sinh(y).
+  ;
+  ; REVISION HISTORY:
+  ; Written W. Landsman                 February, 2001
+  ; Work for multi-dimensional arrays  W. Landsman    August 2002
+  ; Simplify coding, and work for scalars again  W. Landsman October 2003
+  ;
+  on_error, 2
 
-    y = ALog( Abs(x) + SQRT( x^2 + 1.0) )
+  y = alog(abs(x) + sqrt(x ^ 2 + 1.0))
 
-    index = Where(x LT 0 ,count)
-    IF count GT 0 THEN y[index] = -y[index]
+  index = where(x lt 0, count)
+  if count gt 0 then y[index] = -y[index]
 
-    RETURN, y
+  RETURN, y
+end
 
- END ;-------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------
 
+function ASinhScl, image, $
+  beta = beta, $
+  negative = negative, $
+  max = maxValue, $
+  min = minValue, $
+  omax = maxOut, $
+  omin = minOut
+  compile_opt idl2
 
+  ; Return to caller on error.
+  on_error, 2
 
- FUNCTION ASinhScl, image, $
-   BETA=beta, $
-   NEGATIVE=negative, $
-   MAX=maxValue, $
-   MIN=minValue, $
-   OMAX=maxOut, $
-   OMIN=minOut
+  ; Check arguments.
+  if n_elements(image) eq 0 then message, 'Must pass IMAGE argument.'
 
-   ; Return to caller on error.
-   On_Error, 2
+  ; Check for underflow of values near 0. Yuck!
+  curExcept = !except
+  !except = 0
+  i = where(image gt -1e-35 and image lt 1e-35, count)
+  if count gt 0 then image[i] = 0.0
+  void = check_math()
+  !except = curExcept
 
-   ; Check arguments.
-   IF N_Elements(image) EQ 0 THEN Message, 'Must pass IMAGE argument.'
+  ; Work in double precision.
+  output = double(image)
 
-   ; Check for underflow of values near 0. Yuck!
-   curExcept = !Except
-   !Except = 0
-   i = Where(image GT -1e-35 AND image LT 1e-35, count)
-   IF count GT 0 THEN image[i] = 0.0
-   void = Check_Math()
-   !Except = curExcept
+  ; Too damn many floating underflow warnings, no matter WHAT I do! :-(
+  thisExcept = !except
+  !except = 0
 
-   ; Work in double precision.
-   output = Double(image)
+  ; Perform initial scaling of the image into 0 to 1.0.
+  output = Scale_Vector(temporary(output), 0.0, 1.0, maxvalue = maxValue, $
+    minvalue = minValue, /nan, double = 1)
 
-   ; Too damn many floating underflow warnings, no matter WHAT I do! :-(
-   thisExcept = !Except
-   !Except = 0
+  ; Check keywords.
+  if n_elements(beta) eq 0 then beta = 3.0d
+  if n_elements(maxOut) eq 0 then maxOut = 255b else maxOut = 0 > byte(maxOut) < 255
+  if n_elements(minOut) eq 0 then minOut = 0b else minOut = 0 > byte(minOut) < 255
+  if minOut ge maxOut then message, 'OMIN must be less than OMAX.'
 
-   ; Perform initial scaling of the image into 0 to 1.0.
-   output = Scale_Vector(Temporary(output), 0.0, 1.0, MaxValue=maxValue, $
-      MinValue=minValue, /NAN, Double=1)
-
-   ; Check keywords.
-   IF N_Elements(beta) EQ 0 THEN beta = 3.0D
-   IF N_Elements(maxOut) EQ 0 THEN maxOut = 255B ELSE maxout = 0 > Byte(maxOut) < 255
-   IF N_Elements(minOut) EQ 0 THEN minOut = 0B ELSE minOut = 0 > Byte(minOut) < 255
-   IF minOut GE maxout THEN Message, 'OMIN must be less than OMAX.'
-
-   ; Create a non-linear factor from the BETA value.
-   scaled_beta = ((beta > 0) - minValue)/(maxValue - minValue)
-   nonlinearity = 1.0D/(scaled_beta > 1e-12)
+  ; Create a non-linear factor from the BETA value.
+  scaled_beta = ((beta > 0) - minValue) / (maxValue - minValue)
+  nonlinearity = 1.0d / (scaled_beta > 1e-12)
 
   ; Find out where 0 and 1 map in ASINH, then set these as MINVALUE and MAXVALUE
-   ; in next SCALE_VECTOR call. This is necessary to preserve proper scaling.
-   extrema = ASinhScl_ASinh([0, 1.0D] * nonlinearity)
+  ; in next SCALE_VECTOR call. This is necessary to preserve proper scaling.
+  extrema = ASinhScl_ASinh([0, 1.0d] * nonlinearity)
 
-   ; Inverse hyperbolic sine scaling.
-   output = Scale_Vector(ASinhScl_ASinh(Temporary(output)*nonlinearity), $
-      minOut, maxOut, /NAN, Double=1, MinValue=extrema[0], MaxValue=extrema[1])
+  ; Inverse hyperbolic sine scaling.
+  output = Scale_Vector(ASinhScl_ASinh(temporary(output) * nonlinearity), $
+    minOut, maxOut, /nan, double = 1, minvalue = extrema[0], maxvalue = extrema[1])
 
-   ; Clear math errors.
-   void = Check_Math()
-   !Except = thisExcept
+  ; Clear math errors.
+  void = check_math()
+  !except = thisExcept
 
-   ; Does the user want the negative result?
-   IF Keyword_Set(negative) THEN RETURN, BYTE(maxout - Round(output) + minOut) $
-      ELSE RETURN, BYTE(Round(output))
+  ; Does the user want the negative result?
+  if keyword_set(negative) then RETURN, byte(maxOut - round(output) + minOut) $
+  else RETURN, byte(round(output))
+end
 
- END ;-------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------

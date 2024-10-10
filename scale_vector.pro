@@ -1,39 +1,39 @@
 ; docformat = 'rst'
 ;
 ; NAME:
-;   Scale_Vector
+; Scale_Vector
 ;
 ; PURPOSE:
-;   This is a utility routine to scale the elements of a vector or an array into a
-;   given data range.
+; This is a utility routine to scale the elements of a vector or an array into a
+; given data range.
 ;
-;******************************************************************************************;
-;                                                                                          ;
-;  Copyright (c) 1998-2013, by Fanning Software Consulting, Inc. All rights reserved.      ;
-;                                                                                          ;
-;  Redistribution and use in source and binary forms, with or without                      ;
-;  modification, are permitted provided that the following conditions are met:             ;
-;                                                                                          ;
-;      * Redistributions of source code must retain the above copyright                    ;
-;        notice, this list of conditions and the following disclaimer.                     ;
-;      * Redistributions in binary form must reproduce the above copyright                 ;
-;        notice, this list of conditions and the following disclaimer in the               ;
-;        documentation and/or other materials provided with the distribution.              ;
-;      * Neither the name of Fanning Software Consulting, Inc. nor the names of its        ;
-;        contributors may be used to endorse or promote products derived from this         ;
-;        software without specific prior written permission.                               ;
-;                                                                                          ;
-;  THIS SOFTWARE IS PROVIDED BY FANNING SOFTWARE CONSULTING, INC. ''AS IS'' AND ANY        ;
-;  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES    ;
-;  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT     ;
-;  SHALL FANNING SOFTWARE CONSULTING, INC. BE LIABLE FOR ANY DIRECT, INDIRECT,             ;
-;  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED    ;
-;  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;         ;
-;  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND             ;
-;  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT              ;
-;  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS           ;
-;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                            ;
-;******************************************************************************************;
+; ******************************************************************************************;
+; ;
+; Copyright (c) 1998-2013, by Fanning Software Consulting, Inc. All rights reserved.      ;
+; ;
+; Redistribution and use in source and binary forms, with or without                      ;
+; modification, are permitted provided that the following conditions are met:             ;
+; ;
+; * Redistributions of source code must retain the above copyright                    ;
+; notice, this list of conditions and the following disclaimer.                     ;
+; * Redistributions in binary form must reproduce the above copyright                 ;
+; notice, this list of conditions and the following disclaimer in the               ;
+; documentation and/or other materials provided with the distribution.              ;
+; * Neither the name of Fanning Software Consulting, Inc. nor the names of its        ;
+; contributors may be used to endorse or promote products derived from this         ;
+; software without specific prior written permission.                               ;
+; ;
+; THIS SOFTWARE IS PROVIDED BY FANNING SOFTWARE CONSULTING, INC. ''AS IS'' AND ANY        ;
+; EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES    ;
+; OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT     ;
+; SHALL FANNING SOFTWARE CONSULTING, INC. BE LIABLE FOR ANY DIRECT, INDIRECT,             ;
+; INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED    ;
+; TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;         ;
+; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND             ;
+; ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT              ;
+; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS           ;
+; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                            ;
+; ******************************************************************************************;
 ;
 ;+
 ; This is a utility routine to scale the elements of a vector or an array into a
@@ -107,85 +107,85 @@
 ; :Copyright:
 ;     Copyright (c) 1998-2013, Fanning Software Consulting, Inc.
 ;-
-FUNCTION Scale_Vector, vector, minRange, maxRange, $
-   DOUBLE=double, $
-   MAXVALUE=vectorMax, $
-   MINVALUE=vectorMin, $
-   NAN=nan, $
-   PRESERVE_TYPE=preserve_type
+function Scale_Vector, vector, minRange, maxRange, $
+  double = double, $
+  maxvalue = vectorMax, $
+  minvalue = vectorMin, $
+  nan = nan, $
+  preserve_type = preserve_type
+  compile_opt idl2
 
-   ; Error handling.
-   Catch, theError
-   IF theError NE 0 THEN BEGIN
-      Catch, /Cancel
-      void = Error_Message()
-      RETURN, vector
-   ENDIF
+  ; Error handling.
+  catch, theError
+  if theError ne 0 then begin
+    catch, /cancel
+    void = ERROR_MESSAGE()
+    RETURN, vector
+  endif
 
-   ; Check positional parameters.
-   CASE N_Params() OF
-      0: Message, 'Incorrect number of arguments.'
-      1: BEGIN
-         IF Keyword_Set(double) THEN BEGIN
-            minRange = 0.0D
-            maxRange = 1.0D
-         ENDIF ELSE BEGIN
-            minRange = 0.0
-            maxRange = 1.0
-         ENDELSE
-         ENDCASE
-      2: BEGIN
-         IF Keyword_Set(double) THEN maxRange = 1.0D > (minRange + 0.0001D) ELSE $
-            maxRange = 1.0 > (minRange + 0.0001)
-         ENDCASE
-      ELSE:
-   ENDCASE
+  ; Check positional parameters.
+  case n_params() of
+    0: message, 'Incorrect number of arguments.'
+    1: begin
+      if keyword_set(double) then begin
+        minRange = 0.0d
+        maxRange = 1.0d
+      endif else begin
+        minRange = 0.0
+        maxRange = 1.0
+      endelse
+    endcase
+    2: begin
+      if keyword_set(double) then maxRange = 1.0d > (minRange + 0.0001d) else $
+        maxRange = 1.0 > (minRange + 0.0001)
+    endcase
+    else:
+  endcase
 
-   ; If input data type is DOUBLE and DOUBLE keyword is not set, then set it.
-   IF Size(FPUFIX(vector), /TNAME) EQ 'DOUBLE' AND N_Elements(double) EQ 0 THEN double = 1
+  ; If input data type is DOUBLE and DOUBLE keyword is not set, then set it.
+  if size(FPUFIX(vector), /tname) eq 'DOUBLE' and n_elements(double) eq 0 then double = 1
 
-   ; Make sure we are working with at least floating point numbers.
-   IF Keyword_Set(double) THEN minRange = DOUBLE( minRange ) ELSE minRange = FLOAT( minRange )
-   IF Keyword_Set(double) THEN maxRange = DOUBLE( maxRange ) ELSE maxRange = FLOAT( maxRange )
+  ; Make sure we are working with at least floating point numbers.
+  if keyword_set(double) then minRange = double[minRange] else minRange = float(minRange)
+  if keyword_set(double) then maxRange = double[maxRange] else maxRange = float(maxRange)
 
-   ; Make sure we have a valid range.
-   IF maxRange EQ minRange THEN Message, 'Range max and min are coincidental'
+  ; Make sure we have a valid range.
+  if maxRange eq minRange then message, 'Range max and min are coincidental'
 
-   ; Check keyword parameters.
-   IF Keyword_Set(double) THEN BEGIN
-      IF N_Elements(vectorMin) EQ 0 THEN vectorMin = Double( Min(FPUFIX(vector), NAN=1) ) $
-         ELSE vectorMin = Double(vectorMin)
-      IF N_Elements(vectorMax) EQ 0 THEN vectorMax = DOUBLE( Max(FPUFIX(vector), NAN=1) ) $
-         ELSE vectorMax = DOUBLE( vectorMax )
-   ENDIF ELSE BEGIN
-      IF N_Elements(vectorMin) EQ 0 THEN vectorMin = FLOAT( Min(FPUFIX(vector), NAN=1) ) $
-         ELSE vectorMin = FLOAT( vectorMin )
-      IF N_Elements(vectorMax) EQ 0 THEN vectorMax = FLOAT( Max(FPUFIX(vector), NAN=Keyword_Set(nan)) ) $
-         ELSE vectorMax = FLOAT( vectorMax )
-   ENDELSE
+  ; Check keyword parameters.
+  if keyword_set(double) then begin
+    if n_elements(vectorMin) eq 0 then vectorMin = double[min(FPUFIX(vector), nan = 1)] $
+    else vectorMin = double[vectorMin]
+    if n_elements(vectorMax) eq 0 then vectorMax = double[max(FPUFIX(vector), nan = 1)] $
+    else vectorMax = double[vectorMax]
+  endif else begin
+    if n_elements(vectorMin) eq 0 then vectorMin = float(min(FPUFIX(vector), nan = 1)) $
+    else vectorMin = float(vectorMin)
+    if n_elements(vectorMax) eq 0 then vectorMax = float(max(FPUFIX(vector), nan = keyword_set(nan))) $
+    else vectorMax = float(vectorMax)
+  endelse
 
-   ; Trim vector before scaling.
-   index = Where(Finite(vector) EQ 1, count)
-   IF count NE 0 THEN BEGIN
-      IF Keyword_Set(double) THEN trimVector = Double(vector) ELSE trimVector = Float(vector)
-      trimVector[index]  =  vectorMin >  vector[index] < vectorMax
-   ENDIF ELSE BEGIN
-      IF Keyword_Set(double) THEN trimVector = vectorMin > Double(vector) < vectorMax ELSE $
-         trimVector = vectorMin > Float(vector) < vectorMax
-   ENDELSE
+  ; Trim vector before scaling.
+  index = where(finite(vector) eq 1, count)
+  if count ne 0 then begin
+    if keyword_set(double) then trimVector = double[vector] else trimVector = float(vector)
+    trimVector[index] = vectorMin > vector[index] < vectorMax
+  endif else begin
+    if keyword_set(double) then trimVector = vectorMin > double[vector] < vectorMax else $
+      trimVector = vectorMin > float(vector) < vectorMax
+  endelse
 
-   ; Calculate the scaling factors.
-   scaleFactor = [((minRange * vectorMax)-(maxRange * vectorMin)) / $
-       (vectorMax - vectorMin), (maxRange - minRange) / (vectorMax - vectorMin)]
+  ; Calculate the scaling factors.
+  scaleFactor = [((minRange * vectorMax) - (maxRange * vectorMin)) / $
+    (vectorMax - vectorMin), (maxRange - minRange) / (vectorMax - vectorMin)]
 
-   ; Clear math errors.
-   void = Check_Math()
+  ; Clear math errors.
+  void = check_math()
 
-   ; Return the scaled vector.
-   IF Keyword_Set(preserve_type) THEN BEGIN
-      RETURN, FPUFIX(Convert_To_Type(trimVector * scaleFactor[1] + scaleFactor[0], Size(vector, /TNAME)))
-   ENDIF ELSE BEGIN
-      RETURN, FPUFIX(trimVector * scaleFactor[1] + scaleFactor[0])
-   ENDELSE
-
-END
+  ; Return the scaled vector.
+  if keyword_set(preserve_type) then begin
+    RETURN, FPUFIX(Convert_To_Type(trimVector * scaleFactor[1] + scaleFactor[0], size(vector, /tname)))
+  endif else begin
+    RETURN, FPUFIX(trimVector * scaleFactor[1] + scaleFactor[0])
+  endelse
+end
