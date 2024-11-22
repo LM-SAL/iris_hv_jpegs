@@ -30,6 +30,9 @@ pro hv_iris_fits2jp2k, iris_file, $
   for i = 0, nt - 1 do begin
     img = reform(data[*, *, i])
     hd = header[i]
+    ; HV needs images to be aligned to solar north
+    ; using sat_rot instead of pc_ij matrix to get the angle
+    img = ROT(img, hd.SAT_ROT, missing=-200, /INTERP)
     ; Construct an HVS
     tobs = HV_PARSE_CCSDS(hd.date_obs)
     ; Crop image to remove the parts of the CCD with no data
@@ -58,7 +61,7 @@ pro hv_iris_fits2jp2k, iris_file, $
     vmin = max([0, med - modifer * std])
     vmax = min([max(data), med + modifer * std])
     if TRIM(hd.twave1) eq 2832 then begin
-      img = ASinhScl(img, beta = 10, min = vmin, max = vmax)
+      img = ASinhScl(img, beta = 20, min = vmin, max = vmax)
     endif else begin
       img = ASinhScl(img, beta = 3, min = vmin, max = vmax)
     endelse
@@ -68,7 +71,7 @@ pro hv_iris_fits2jp2k, iris_file, $
     hd = add_tag(hd, info.instrument, 'hv_instrument')
     hd = add_tag(hd, info.detector, 'hv_detector')
     hd = add_tag(hd, measurement, 'hv_measurement')
-    hd = add_tag(hd, asin(hd.pc1_2), 'hv_rotation')
+    hd = add_tag(hd, 0, 'hv_rotation')
     hd = add_tag(hd, progname, 'hv_source_program')
     ; Create the hvs structure
     hvsi = {dir: '', $
@@ -177,6 +180,18 @@ pro hv_iris_fits2jp2k, iris_file, $
         endif
         if tagnames[j] eq 'CRPIX2' then begin
           value = round(new_y / 2) + 1
+        endif
+        if tagnames[j] eq 'PC1_1' then begin
+          value = 1
+        endif
+        if tagnames[j] eq 'PC1_2' then begin
+          value = 0
+        endif
+        if tagnames[j] eq 'PC2_1' then begin
+          value = 0
+        endif
+        if tagnames[j] eq 'PC2_2' then begin
+          value = 1
         endif
         value = HV_XML_COMPLIANCE(strtrim(string(value), 2))
         xh += '<' + tagnames[j] + '>' + value + '</' + tagnames[j] + '>' + lf
