@@ -60,7 +60,7 @@ pro hv_iris_fits2jp2k, iris_file, $
     modifer = 3
     vmin = max([0, med - modifer * std])
     vmax = min([max(data), med + modifer * std])
-    if TRIM(hd.twave1) eq 2832 then begin
+    if (TRIM(hd.twave1) eq 2832) or ((TRIM(hd.twave1) eq 2796)) then begin
       img = ASinhScl(img, beta = 20, min = vmin, max = vmax)
     endif else begin
       img = ASinhScl(img, beta = 3, min = vmin, max = vmax)
