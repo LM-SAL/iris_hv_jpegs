@@ -57,7 +57,11 @@ pro hv_iris_fits2jp2k, iris_file, $
     modifer = 3
     vmin = max([0, med - modifer * std])
     vmax = min([max(data), med + modifer * std])
-    img = ASinhScl(img, beta = 3, min = vmin, max = vmax)
+    if TRIM(hd.twave1) eq 2832 then begin
+      img = ASinhScl(img, beta = 10, min = vmin, max = vmax)
+    endif else begin
+      img = ASinhScl(img, beta = 3, min = vmin, max = vmax)
+    endelse
     ; Extra HV metadata
     measurement = TRIM(hd.twave1)
     hd = add_tag(hd, info.observatory, 'hv_observatory')
