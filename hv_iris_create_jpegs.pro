@@ -30,8 +30,9 @@ pro hv_iris_fits2jp2k, iris_file, $
   for i = 0, nt - 1 do begin
     img = reform(data[*, *, i])
     hd = header[i]
-    rot_angle = 180 / !pi * acos(hd.pc1_1)
-    img = ROT(img, rot_angle)
+    rot_angle = asin(hd.pc1_2)
+    print, rot_angle
+    img = ROT(img, rot_angle, missing=-200, /INTERP)
     ; Construct an HVS
     tobs = HV_PARSE_CCSDS(hd.date_obs)
     ; Crop image to remove the parts of the CCD with no data
