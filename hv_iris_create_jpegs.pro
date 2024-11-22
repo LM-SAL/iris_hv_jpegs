@@ -30,9 +30,6 @@ pro hv_iris_fits2jp2k, iris_file, $
   for i = 0, nt - 1 do begin
     img = reform(data[*, *, i])
     hd = header[i]
-    rot_angle = asin(hd.pc1_2)
-    print, rot_angle
-    img = ROT(img, rot_angle, missing=-200, /INTERP)
     ; Construct an HVS
     tobs = HV_PARSE_CCSDS(hd.date_obs)
     ; Crop image to remove the parts of the CCD with no data
@@ -61,16 +58,13 @@ pro hv_iris_fits2jp2k, iris_file, $
     vmin = max([0, med - modifer * std])
     vmax = min([max(data), med + modifer * std])
     img = ASinhScl(img, beta = 3, min = vmin, max = vmax)
-    ;endif else begin
-    ;  img = ASinhScl(img, beta = 100, min = vmin, max = vmax)
-    ;endelse
     ; Extra HV metadata
     measurement = TRIM(hd.twave1)
     hd = add_tag(hd, info.observatory, 'hv_observatory')
     hd = add_tag(hd, info.instrument, 'hv_instrument')
     hd = add_tag(hd, info.detector, 'hv_detector')
     hd = add_tag(hd, measurement, 'hv_measurement')
-    hd = add_tag(hd, 0, 'hv_rotation')
+    hd = add_tag(hd, asin(hd.pc1_2), 'hv_rotation')
     hd = add_tag(hd, progname, 'hv_source_program')
     ; Create the hvs structure
     hvsi = {dir: '', $
@@ -179,18 +173,6 @@ pro hv_iris_fits2jp2k, iris_file, $
         endif
         if tagnames[j] eq 'CRPIX2' then begin
           value = round(new_y / 2) + 1
-        endif
-        if tagnames[j] eq 'PC1_1' then begin
-          value = 1
-        endif
-        if tagnames[j] eq 'PC1_2' then begin
-          value = 0
-        endif
-        if tagnames[j] eq 'PC2_1' then begin
-          value = 0
-        endif
-        if tagnames[j] eq 'PC2_2' then begin
-          value = 1
         endif
         value = HV_XML_COMPLIANCE(strtrim(string(value), 2))
         xh += '<' + tagnames[j] + '>' + value + '</' + tagnames[j] + '>' + lf

@@ -108,7 +108,7 @@
 ;     Copyright (c) 1998-2013, Fanning Software Consulting, Inc.
 ;-
 function Scale_Vector, vector, minRange, maxRange, $
-  DOUBLE = double, $
+  double = double, $
   maxvalue = vectorMax, $
   minvalue = vectorMin, $
   nan = nan, $
@@ -146,14 +146,14 @@ function Scale_Vector, vector, minRange, maxRange, $
   if size(FPUFIX(vector), /tname) eq 'DOUBLE' and n_elements(double) eq 0 then double = 1
 
   ; Make sure we are working with at least floating point numbers.
-  if keyword_set(DOUBLE) then minRange = double(minRange) else minRange = float(minRange)
-  if keyword_set(DOUBLE) then maxRange = double(maxRange) else maxRange = float(maxRange)
+  if keyword_set(double) then minRange = double(minRange) else minRange = float(minRange)
+  if keyword_set(double) then maxRange = double(maxRange) else maxRange = float(maxRange)
 
   ; Make sure we have a valid range.
   if maxRange eq minRange then message, 'Range max and min are coincidental'
 
   ; Check keyword parameters.
-  if keyword_set(DOUBLE) then begin
+  if keyword_set(double) then begin
     if n_elements(vectorMin) eq 0 then vectorMin = double(min(FPUFIX(vector), nan = 1)) $
     else vectorMin = double(vectorMin)
     if n_elements(vectorMax) eq 0 then vectorMax = double(max(FPUFIX(vector), nan = 1)) $
@@ -168,10 +168,10 @@ function Scale_Vector, vector, minRange, maxRange, $
   ; Trim vector before scaling.
   index = where(finite(vector) eq 1, count)
   if count ne 0 then begin
-    if keyword_set(DOUBLE) then trimVector = double(vector) else trimVector = float(vector)
+    if keyword_set(double) then trimVector = double(vector) else trimVector = float(vector)
     trimVector[index] = vectorMin > vector[index] < vectorMax
   endif else begin
-    if keyword_set(DOUBLE) then trimVector = vectorMin > double(vector) < vectorMax else $
+    if keyword_set(double) then trimVector = vectorMin > double(vector) < vectorMax else $
       trimVector = vectorMin > float(vector) < vectorMax
   endelse
 
