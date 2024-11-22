@@ -1,10 +1,6 @@
 pro hv_iris_fits2jp2k, iris_file, $
-  ; IRIS details file
   details_file = details_file, $
-  do_cruiser = do_cruiser, $
-  ; Output directories for generated jpeg2000 images:
   dir_obs_wave_out_iris = dir_obs_wave_out_iris, $
-  dir_obs_out_cruiser = dir_obs_out_cruiser, $
   log_latest_file_time = log_latest_file_time, $
   dir_logs = dir_logs
   compile_opt idl2
@@ -31,12 +27,6 @@ pro hv_iris_fits2jp2k, iris_file, $
   wave_arr = info.details[*].measurement
   ; Loop through given file generating canonical helioviewer header and
   ; writing out the jpeg2000 file for each step
-  ; Assume exptime doesnt change enough
-  med = median(data[data ge 0])
-  std = stddev(data[data ge 0])
-  modifer = 1
-  vmin = max([0, med - modifer * std])
-  vmax = min([max(data), med + modifer * std])
   for i = 0, nt - 1 do begin
     img = reform(data[*, *, i])
     hd = header[i]
@@ -60,21 +50,19 @@ pro hv_iris_fits2jp2k, iris_file, $
     new_y = S[1]
     this_wave = where(wave_arr eq TRIM(hd.twave1))
     ; The crop does not remove all of the -200 locations
-    img[where(img le 0)] = mean(img[where(img ge 0)])
+    img[where(img le 0)] = 0
     ; Exposure normalization
     img = img / (1.0 * hd.exptime)
     ; Adjust Scaling
-    ; for smaller range images
-    if max(img) - min(img) le 500 then begin
-      med = median(img)
-      std = stddev(img)
-      modifer = 3
-      vmin = max([0, med - modifer * std])
-      vmax = min([max(data), med + modifer * std])
-      img = ASinhScl(img, beta = 1, min = vmin, max = vmax)
-    endif else begin
-      img = ASinhScl(img, beta = 3, min = vmin, max = vmax)
-    endelse
+    med = median(img)
+    std = stddev(img)
+    modifer = 3
+    vmin = max([0, med - modifer * std])
+    vmax = min([max(data), med + modifer * std])
+    img = ASinhScl(img, beta = 3, min = vmin, max = vmax)
+    ;endif else begin
+    ;  img = ASinhScl(img, beta = 100, min = vmin, max = vmax)
+    ;endelse
     ; Extra HV metadata
     measurement = TRIM(hd.twave1)
     hd = add_tag(hd, info.observatory, 'hv_observatory')
@@ -269,23 +257,6 @@ pro hv_iris_fits2jp2k, iris_file, $
       reversible = 1)
     oJP2.setData, img
     obj_destroy, oJP2
-    ; Optionally also write this JPEG2000 file to a corresponding cruiser directory
-    if keyword_set(do_cruiser) then begin
-      ; Create cruiser obs directory if it does not already exist:
-      ; Want to store each obs under YY/MM/DD/
-      loc_crusier = dir_obs_out_cruiser + '/' + string(tobs.yy) + '/' + string(tobs.mm) + '/' + string(tobs.dd) + '/'
-      if ~file_exist(dir_obs_out_cruiser) then mk_dir, loc_crusier
-      oJP2 = obj_new('IDLffJPEG2000', /write, $
-        concat_dir(dir_obs_out_cruiser, jp2_filename), $
-        bit_rate = info.details[this_wave].bit_rate, $
-        n_layers = info.details[this_wave].n_layers, $
-        n_levels = info.details[this_wave].n_levels, $
-        progression = 'RPCL', $
-        xml = xh, $
-        reversible = 1)
-      oJP2.setData, img
-      obj_destroy, oJP2
-    endif ; End of optional file write to cruiser dir
   endfor
   ; Update the 'last file written' log:
   if keyword_set(log_latest_file_time) then begin

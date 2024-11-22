@@ -9,7 +9,7 @@ files_iris = file_search(['/home/nabil/DATA/IRIS/**/*SJI*.fits'])
 for i = 0, n_elements(files_iris) - 1 do begin
   print, '########'
   print, 'STARTED ', files_iris[i]
-  hv_iris_fits2jp2k, files_iris[i], details_file = './hvs_default_iris.pro', dir_obs_wave_out_iris = './output', log_latest_file_time = 0, do_cruiser = 0, dir_obs_out_cruiser = './crusier'
+  hv_iris_fits2jp2k, files_iris[i], details_file = './hvs_default_iris.pro', dir_obs_wave_out_iris = './output', log_latest_file_time = 0
   print, 'FINSIHED ', files_iris[i]
   print, '########'
 endfor
